@@ -1,26 +1,49 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import { FaExchangeAlt } from 'react-icons/fa';
+import { FaExchangeAlt, FaClock, FaUsers, FaDollarSign, FaPlane } from 'react-icons/fa';
 import styled from '@emotion/styled';
 
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
 `;
 
 const Header = styled.header`
   text-align: center;
   margin-bottom: 40px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  h1 {
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #666;
+    font-size: 1.1rem;
+  }
 `;
 
 const SearchForm = styled.form`
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
 `;
 
 const InputGroup = styled.div`
@@ -32,24 +55,45 @@ const InputGroup = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 16px;
+  transition: all 0.2s;
+
+  &:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+    outline: none;
+  }
+
+  &:hover {
+    border-color: #1a73e8;
+  }
 `;
 
 const Button = styled.button`
-  background: #1a73e8;
+  background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
   color: white;
-  padding: 12px 24px;
+  padding: 14px 28px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  font-weight: 600;
   width: 100%;
+  transition: all 0.2s;
   
   &:hover {
-    background: #1557b0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(26, 115, 232, 0.3);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 `;
 
@@ -59,48 +103,275 @@ const ResultsContainer = styled.div`
 
 const FlightCard = styled.div`
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+  transition: all 0.2s;
+  overflow: hidden;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #1a73e8, #0d47a1);
+  }
+`;
+
+const FlightHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+
+  .airline-logo {
+    width: 50px;
+    height: 50px;
+    background: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a73e8;
+  }
+
+  .airline-info {
+    flex: 1;
+    h3 {
+      margin: 0;
+      color: #1a73e8;
+      font-size: 1.2rem;
+    }
+    .flight-number {
+      color: #666;
+      font-size: 0.9rem;
+    }
+  }
+
+  .price-tag {
+    background: #e3f2fd;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #1a73e8;
+    font-weight: 600;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+`;
+
+const FlightDetails = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: 1fr auto 1fr;
   gap: 20px;
   align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+
+  .station {
+    text-align: center;
+    
+    .time {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    
+    .airport {
+      color: #666;
+      font-size: 0.9rem;
+    }
+  }
+
+  .flight-path {
+    display: flex;
+    align-items: center;
+    color: #1a73e8;
+    position: relative;
+    padding: 0 20px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 2px dashed #1a73e8;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    svg {
+      background: #f8f9fa;
+      padding: 5px;
+      position: relative;
+      z-index: 1;
+    }
+  }
+`;
+
+const FlightInfo = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    
+    svg {
+      color: #1a73e8;
+    }
+
+    .label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .value {
+      color: #2c3e50;
+      font-weight: 500;
+    }
+  }
 `;
 
 const Select = styled.select`
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 16px;
   background-color: white;
+  transition: all 0.2s;
+  cursor: pointer;
+
+  &:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+    outline: none;
+  }
+
+  &:hover {
+    border-color: #1a73e8;
+  }
 `;
 
 const PassengerGroup = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 25px;
   background: #f8f9fa;
-  padding: 15px;
-  border-radius: 4px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 `;
 
 const PassengerSelect = styled.div`
   label {
     display: block;
-    margin-bottom: 5px;
-    color: #666;
+    margin-bottom: 8px;
+    color: #1a73e8;
     font-size: 14px;
+    font-weight: 600;
   }
+  
   select {
     width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
     font-size: 14px;
+    transition: all 0.2s;
+    cursor: pointer;
+
+    &:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+      outline: none;
+    }
+
+    &:hover {
+      border-color: #1a73e8;
+    }
+  }
+`;
+
+const SortingControls = styled.div`
+  margin-bottom: 25px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  label {
+    color: #1a73e8;
+    font-weight: 600;
+  }
+`;
+
+const SortSelect = styled.select`
+  padding: 10px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+    outline: none;
+  }
+
+  &:hover {
+    border-color: #1a73e8;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #d32f2f;
+  font-weight: 500;
+`;
+
+const LoadingSpinner = styled.div`
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 10px;
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 `;
 
@@ -115,6 +386,8 @@ function App() {
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [sortCriteria, setSortCriteria] = useState('price');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -161,7 +434,7 @@ function App() {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'x-rapidapi-ua': 'RapidAPI-Playground',
-          'X-RapidAPI-Key': '16723e6023msha66ce3d1751bf7fp16e5b2jsn53092387d788',
+          'X-RapidAPI-Key': process.env.REACT_APP_RAPID_API_KEY,
           'X-RapidAPI-Host': 'sky-scrapper.p.rapidapi.com'
         }
       };
@@ -223,7 +496,7 @@ function App() {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'x-rapidapi-ua': 'RapidAPI-Playground',
-          'X-RapidAPI-Key': '16723e6023msha66ce3d1751bf7fp16e5b2jsn53092387d788',
+          'X-RapidAPI-Key': process.env.REACT_APP_RAPID_API_KEY,
           'X-RapidAPI-Host': 'sky-scrapper.p.rapidapi.com'
         }
       };
@@ -386,13 +659,34 @@ function App() {
     setTo(temp);
   };
 
+  const sortFlights = (flights) => {
+    return [...flights].sort((a, b) => {
+      switch (sortCriteria) {
+        case 'price':
+          const priceA = parseFloat(a.price.replace(/[^0-9.]/g, ''));
+          const priceB = parseFloat(b.price.replace(/[^0-9.]/g, ''));
+          return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+        case 'duration':
+          const durationA = a.duration.includes('N/A') ? Infinity : 
+            parseInt(a.duration.match(/\d+h/)[0]) * 60 + parseInt(a.duration.match(/\d+m/)[0]);
+          const durationB = b.duration.includes('N/A') ? Infinity : 
+            parseInt(b.duration.match(/\d+h/)[0]) * 60 + parseInt(b.duration.match(/\d+m/)[0]);
+          return sortOrder === 'asc' ? durationA - durationB : durationB - durationA;
+        case 'departure':
+          const timeA = new Date(a.departureTime);
+          const timeB = new Date(b.departureTime);
+          return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+        default:
+          return 0;
+      }
+    });
+  };
+
   return (
     <Container>
       <Header>
-        <h1>Flight Search</h1>
-        <p style={{ color: '#666', marginTop: '10px' }}>
-          Enter airport codes (e.g., JFK for New York, LAX for Los Angeles)
-        </p>
+        <h1>Flight Spotter</h1>
+        <p>Enter airport codes (e.g., JFK for New York, LAX for Los Angeles)</p>
       </Header>
 
       <SearchForm onSubmit={searchFlights}>
@@ -490,52 +784,98 @@ function App() {
         </PassengerGroup>
 
         <Button type="submit" disabled={loading}>
-          {loading ? 'Searching...' : 'Search Flights'}
+          {loading ? (
+            <>
+              <LoadingSpinner />
+              Searching...
+            </>
+          ) : (
+            'Search Flights'
+          )}
         </Button>
       </SearchForm>
 
       <ResultsContainer>
-        {error && (
-          <div style={{ 
-            color: 'red', 
-            background: '#fff', 
-            padding: '15px', 
-            borderRadius: '8px',
-            marginBottom: '20px' 
-          }}>
-            {error}
-          </div>
+        {flights.length > 0 && (
+          <SortingControls>
+            <label>Sort by:</label>
+            <SortSelect value={sortCriteria} onChange={(e) => setSortCriteria(e.target.value)}>
+              <option value="price">Price</option>
+              <option value="duration">Duration</option>
+              <option value="departure">Departure Time</option>
+            </SortSelect>
+            <SortSelect value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+              <option value="asc">Low to High</option>
+              <option value="desc">High to Low</option>
+            </SortSelect>
+          </SortingControls>
         )}
+
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         
         {flights.length > 0 ? (
-          flights.map((flight, index) => (
+          sortFlights(flights).map((flight, index) => (
             <FlightCard key={index}>
-              <div>
-                <strong>Route:</strong> {flight.departure} → {flight.arrival}
-              </div>
-              <div>
-                <strong>Airline:</strong> {flight.airline}
-              </div>
-              <div>
-                <strong>Flight:</strong> {flight.flightNumber}
-              </div>
-              <div>
-                <strong>Departure:</strong> {flight.departureTime}
-              </div>
-              <div>
-                <strong>Arrival:</strong> {flight.arrivalTime}
-              </div>
-              <div>
-                <strong>Duration:</strong> {flight.duration}
-              </div>
-              <div>
-                <strong>Passengers:</strong> {flight.passengers.total} ({flight.passengers.adults} Adults
-                {flight.passengers.children > 0 ? `, ${flight.passengers.children} Children` : ''}
-                {flight.passengers.infants > 0 ? `, ${flight.passengers.infants} Infants` : ''})
-              </div>
-              <div>
-                <strong>Price:</strong> {flight.price}
-              </div>
+              <FlightHeader>
+                <div className="airline-logo">
+                  <FaPlane size={24} />
+                </div>
+                <div className="airline-info">
+                  <h3>{flight.airline}</h3>
+                  <span className="flight-number">Flight {flight.flightNumber}</span>
+                </div>
+                <div className="price-tag">
+                  <FaDollarSign />
+                  {flight.price}
+                </div>
+              </FlightHeader>
+
+              <FlightDetails>
+                <div className="station">
+                  <div className="time">
+                    {new Date(flight.departureTime).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </div>
+                  <div className="airport">{flight.departure}</div>
+                </div>
+                <div className="flight-path">
+                  <FaPlane />
+                </div>
+                <div className="station">
+                  <div className="time">
+                    {new Date(flight.arrivalTime).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </div>
+                  <div className="airport">{flight.arrival}</div>
+                </div>
+              </FlightDetails>
+
+              <FlightInfo>
+                <div className="info-item">
+                  <FaClock />
+                  <div>
+                    <div className="label">Duration</div>
+                    <div className="value">{flight.duration}</div>
+                  </div>
+                </div>
+                <div className="info-item">
+                  <FaUsers />
+                  <div>
+                    <div className="label">Passengers</div>
+                    <div className="value">
+                      {flight.passengers.total} ({flight.passengers.adults} Adults
+                      {flight.passengers.children > 0 ? `, ${flight.passengers.children} Children` : ''}
+                      {flight.passengers.infants > 0 ? `, ${flight.passengers.infants} Infants` : ''})
+                    </div>
+                  </div>
+                </div>
+              </FlightInfo>
             </FlightCard>
           ))
         ) : !error && !loading && (
