@@ -375,6 +375,25 @@ const LoadingSpinner = styled.div`
   }
 `;
 
+const Footer = styled.footer`
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
+  color: #666;
+  font-size: 0.9rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+
+  a {
+    color: #1a73e8;
+    text-decoration: none;
+    font-weight: 500;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
 function App() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -884,6 +903,13 @@ function App() {
           </div>
         )}
       </ResultsContainer>
+
+      <Footer>
+        © {new Date().getFullYear()} Flight Spotter. Developed by{' '}
+        <a href="https://github.com/samruddhamohite" target="_blank" rel="noopener noreferrer">
+          Samruddha Mohire
+        </a>
+      </Footer>
     </Container>
   );
 }
