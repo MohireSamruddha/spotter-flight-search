@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import "react-datepicker/dist/react-datepicker.css";
-import { FaExchangeAlt, FaClock, FaUsers, FaDollarSign, FaPlane } from 'react-icons/fa';
+import { FaExchangeAlt, FaClock, FaUsers, FaDollarSign, FaPlane, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 import styled from '@emotion/styled';
+import { BrowserRouter as Router, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -394,7 +395,98 @@ const Footer = styled.footer`
   }
 `;
 
+const SelectButton = styled.button`
+  background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(26, 115, 232, 0.3);
+  }
+
+  svg {
+    font-size: 16px;
+  }
+`;
+
+const FormCard = styled.div`
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #1a73e8;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.2s;
+
+    &:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+      outline: none;
+    }
+
+    &:hover {
+      border-color: #1a73e8;
+    }
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+`;
+
+const BackButton = styled(Button)`
+  background: #f8f9fa;
+  color: #1a73e8;
+  border: 2px solid #1a73e8;
+
+  &:hover {
+    background: #e3f2fd;
+  }
+`;
+
 function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/passenger-details" element={<PassengerDetails />} />
+      </Routes>
+    </Router>
+  );
+}
+
+function HomePage() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -407,6 +499,7 @@ function App() {
   const [error, setError] = useState(null);
   const [sortCriteria, setSortCriteria] = useState('price');
   const [sortOrder, setSortOrder] = useState('asc');
+  const navigate = useNavigate();
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -701,6 +794,10 @@ function App() {
     });
   };
 
+  const handleSelectFlight = (flight) => {
+    navigate('/passenger-details', { state: { selectedFlight: flight } });
+  };
+
   return (
     <Container>
       <Header>
@@ -895,6 +992,10 @@ function App() {
                   </div>
                 </div>
               </FlightInfo>
+
+              <SelectButton onClick={() => handleSelectFlight(flight)}>
+                Select Flight <FaArrowRight />
+              </SelectButton>
             </FlightCard>
           ))
         ) : !error && !loading && (
@@ -903,6 +1004,162 @@ function App() {
           </div>
         )}
       </ResultsContainer>
+
+      <Footer>
+        © {new Date().getFullYear()} Flight Spotter. Developed by{' '}
+        <a href="https://github.com/samruddhamohite" target="_blank" rel="noopener noreferrer">
+          Samruddha Mohire
+        </a>
+      </Footer>
+    </Container>
+  );
+}
+
+function PassengerDetails() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const selectedFlight = location.state?.selectedFlight;
+  const [passengerForms, setPassengerForms] = useState(
+    Array(selectedFlight?.passengers.total).fill({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      dateOfBirth: '',
+      nationality: '',
+      passportNumber: '',
+      passportExpiry: ''
+    })
+  );
+
+  if (!selectedFlight) {
+    navigate('/');
+    return null;
+  }
+
+  const handleInputChange = (index, field, value) => {
+    const newForms = [...passengerForms];
+    newForms[index] = { ...newForms[index], [field]: value };
+    setPassengerForms(newForms);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Here you would typically send the passenger details to your backend
+    console.log('Passenger Details:', passengerForms);
+    console.log('Selected Flight:', selectedFlight);
+    // For now, we'll just show an alert
+    alert('Booking successful! (This is a demo)');
+    navigate('/');
+  };
+
+  return (
+    <Container>
+      <Header>
+        <h1>Passenger Details</h1>
+        <p>Fill in the details for your flight from {selectedFlight.departure} to {selectedFlight.arrival}</p>
+      </Header>
+
+      <form onSubmit={handleSubmit}>
+        {passengerForms.map((passenger, index) => (
+          <FormCard key={index}>
+            <h2 style={{ marginBottom: '20px', color: '#1a73e8' }}>
+              Passenger {index + 1}
+            </h2>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <FormGroup>
+                <label>First Name</label>
+                <input
+                  type="text"
+                  required
+                  value={passenger.firstName}
+                  onChange={(e) => handleInputChange(index, 'firstName', e.target.value)}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  required
+                  value={passenger.lastName}
+                  onChange={(e) => handleInputChange(index, 'lastName', e.target.value)}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <label>Email</label>
+                <input
+                  type="email"
+                  required
+                  value={passenger.email}
+                  onChange={(e) => handleInputChange(index, 'email', e.target.value)}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <label>Phone</label>
+                <input
+                  type="tel"
+                  required
+                  value={passenger.phone}
+                  onChange={(e) => handleInputChange(index, 'phone', e.target.value)}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <label>Date of Birth</label>
+                <input
+                  type="date"
+                  required
+                  value={passenger.dateOfBirth}
+                  onChange={(e) => handleInputChange(index, 'dateOfBirth', e.target.value)}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <label>Nationality</label>
+                <input
+                  type="text"
+                  required
+                  value={passenger.nationality}
+                  onChange={(e) => handleInputChange(index, 'nationality', e.target.value)}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <label>Passport Number</label>
+                <input
+                  type="text"
+                  required
+                  value={passenger.passportNumber}
+                  onChange={(e) => handleInputChange(index, 'passportNumber', e.target.value)}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <label>Passport Expiry Date</label>
+                <input
+                  type="date"
+                  required
+                  value={passenger.passportExpiry}
+                  onChange={(e) => handleInputChange(index, 'passportExpiry', e.target.value)}
+                />
+              </FormGroup>
+            </div>
+          </FormCard>
+        ))}
+
+        <ButtonGroup>
+          <BackButton type="button" onClick={() => navigate('/')}>
+            <FaArrowLeft /> Back to Flights
+          </BackButton>
+          <Button type="submit">
+            Confirm Booking <FaArrowRight />
+          </Button>
+        </ButtonGroup>
+      </form>
 
       <Footer>
         © {new Date().getFullYear()} Flight Spotter. Developed by{' '}
