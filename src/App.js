@@ -1045,10 +1045,8 @@ function PassengerDetails() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically send the passenger details to your backend
     console.log('Passenger Details:', passengerForms);
     console.log('Selected Flight:', selectedFlight);
-    // For now, we'll just show an alert
     alert('Booking successful! (This is a demo)');
     navigate('/');
   };
